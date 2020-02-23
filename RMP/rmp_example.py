@@ -8,7 +8,17 @@ from rmp_leaf import CollisionAvoidance, GoalAttractorUni
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.integrate import solve_ivp
+
+import platform
+
+remote = "iPad" not in platform.platform()
+
+
+if remote:
+	from scipy.integrate import solve_ivp as ode
+else:
+	from ode import ode_RK as ode
+
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -17,14 +27,14 @@ print ("hello world")
 
 # ---------------------------------------------
 # build the rmp tree
-x_g = np.array([-3, 3])
+x_g = np.array([-1, 3])
 x_o = np.array([0, 0])
-r_o = 1
+r_o = 2
 
 r = RMPRoot('root')
 leaf1 = CollisionAvoidance('collision_avoidance', r, None, epsilon=0.2)
 leaf2 = GoalAttractorUni('goal_attractor', r, x_g)
-
+leaf3 = Formation
 # ----------------------------------------------
 
 # -----------------------------------------
@@ -64,13 +74,18 @@ def dynamics(t, state):
 
 # ---------------------------------------------
 # solve the diff eq
-sol = solve_ivp(dynamics, [0, 40], state_0)
+
+#sol = solve_ivp(dynamics, [0, 40], state_0)
+sol = ode(dynamics, [0, 40], state_0)
 # ---------------------------------------------
 
 # --------------------------------------------
 # plot trajectories
 
-plt.plot(sol.y[0], sol.y[1])
+#plt.plot(sol.y[0], sol.y[1])
+
+
+plt.plot(sol[:, 0], sol[:, 1])
 plt.plot(x_g[0], x_g[1], 'go')
 
 circle = plt.Circle((x_o[0], x_o[1]), r_o, color='k', fill=False)

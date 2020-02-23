@@ -38,8 +38,8 @@ class CollisionAvoidance(RMPLeaf):
                 y_dot.T,
                 (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T)
                     + 1 / norm(y - c) * np.eye(N))) / R
-
-
+                    
+                    
         def RMP_func(x, x_dot):
             if x < 0:
                 w = 1e10

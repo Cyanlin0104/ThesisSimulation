@@ -7,14 +7,23 @@ from rmp_leaf import CollisionAvoidance, CollisionAvoidanceDecentralized, GoalAt
 
 import numpy as np
 from numpy.linalg import norm
-from scipy.integrate import solve_ivp
+
+import platform
+
+remote = "iPad" not in platform.platform()
+
+
+if remote:
+	from scipy.integrate import solve_ivp as ode
+else:
+	from ode import ode_RK as ode
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
 import math
-from scipy.spatial.distance import pdist
+#from scipy.spatial.distance import pdist
 
 # ---------------------------------------------
 # build the rmp tree
@@ -107,7 +116,7 @@ def dynamics(t, state):
 
 # ---------------------------------------------
 # solve the diff eq
-sol = solve_ivp(dynamics, [0, 60], state_0)
+sol = ode(dynamics, [0, 60], state_0)
 # ---------------------------------------------
 
 # --------------------------------------------
@@ -115,7 +124,8 @@ sol = solve_ivp(dynamics, [0, 60], state_0)
 
 
 for i in range(N):
-    plt.plot(sol.y[2 * i], sol.y[2 * i + 1], 'y--')
+    #plt.plot(sol.y[2 * i], sol.y[2 * i + 1], 'y--')
+    plt.plot(sol[:, 2*i], sol[:, 2*i+1], 'y--')
     plt.plot(x_g[i, 0], x_g[i, 1], 'go')
     plt.plot(x_0[i, 0], x_0[i, 1], 'ro')
 
