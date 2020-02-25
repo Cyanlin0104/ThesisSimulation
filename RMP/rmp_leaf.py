@@ -7,6 +7,38 @@ import numpy as np
 from numpy.linalg import norm
 
 
+class NaiveCollisionAvoidance(RMPLeaf):
+    def __init__(self, name, parent, parent_param, c=np.zeros(2), R=1,epsilon=0.2,
+        alpha=1e-5, eta=0):
+        self.R = R
+        self.c = c
+        if parent_param:
+            psi = None
+            J = None
+            J_dot = None
+        else:
+            N = c.shape[0]
+            psi = lambda y: np.array(norm(y-c) / R - 1).reshape(-1,1)
+            J = lambda y: (y - c).T / (norm(y-c) * R)
+            J_dot = lambda y, y_dot: np.dot(
+                y_dot.T,
+                (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T)
+                    + 1 / norm(y - c) * np.eye(N))) / R
+            
+        def RMP_func(x, x_dot):
+            w = 1.0 / x**4
+            grad_w = -4.0 / x**5
+            g = 1
+            grad_Phi = alpha* w * grad_w
+        
+            M = g
+            Bx_dot = eta*g*x_dot
+        
+            f = -grad_Phi - Bx_dot
+            f = np.minimum(np.maximum(f, -1e10), 1e10)
+        
+            return (f, M)
+        RMPLeaf.__init__(self, name, parent, parent_param, psi, J, J_dot, RMP_func)
 
 class CollisionAvoidance(RMPLeaf):
     """

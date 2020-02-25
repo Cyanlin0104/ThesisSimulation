@@ -15,8 +15,8 @@ class RMPNode:
 		self.children = []
 
 		# connect the node to its parent
-		if self.parent:
-			self.parent.add_child(self)
+		#if self.parent:
+		#	self.parent.add_child(self)
 
 		# mapping/J/J_dot for the edge from the parent to the node
 		self.psi = psi

@@ -4,7 +4,7 @@
 
 
 from rmp import RMPRoot
-from rmp_leaf import CollisionAvoidance, GoalAttractorUni
+from rmp_leaf import  NaiveCollisionAvoidance, CollisionAvoidance, GoalAttractorUni
 
 import numpy as np
 from numpy.linalg import norm
@@ -34,7 +34,7 @@ r_o = 2
 r = RMPRoot('root')
 leaf1 = CollisionAvoidance('collision_avoidance', r, None, epsilon=0.2)
 leaf2 = GoalAttractorUni('goal_attractor', r, x_g)
-leaf3 = Formation
+leaf3 = NaiveCollisionAvoidance('Naive_collision_avoidance', r, None)
 # ----------------------------------------------
 
 # -----------------------------------------
