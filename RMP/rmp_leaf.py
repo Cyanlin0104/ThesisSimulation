@@ -7,7 +7,8 @@ import numpy as np
 from numpy.linalg import norm
 
 
-class NaiveCollisionAvoidance(RMPLeaf):
+### for comparision with Riemannian based method
+class NaiveCollisionAvoidance(RMPNode):
     def __init__(self, name, parent, parent_param, c=np.zeros(2), R=1,epsilon=0.2,
         alpha=1e-5, eta=0):
         self.R = R
@@ -36,11 +37,11 @@ class NaiveCollisionAvoidance(RMPLeaf):
         
             f = -grad_Phi - Bx_dot
             f = np.minimum(np.maximum(f, -1e10), 1e10)
-        
             return (f, M)
-        RMPLeaf.__init__(self, name, parent, parent_param, psi, J, J_dot, RMP_func)
+        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+        #RMPLeaf.__init__(self, name, parent, parent_param, psi, J, J_dot, RMP_func)
 
-class CollisionAvoidance(RMPLeaf):
+class CollisionAvoidance(RMPNode):
     """
     Obstacle avoidance RMP leaf
     """
@@ -96,7 +97,7 @@ class CollisionAvoidance(RMPLeaf):
 
             return (f, M)
 
-        RMPLeaf.__init__(self, name, parent, parent_param, psi, J, J_dot, RMP_func)
+        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
 
 
 
@@ -260,7 +261,7 @@ class CollisionAvoidanceCentralized(RMPLeaf):
 
 
 
-class GoalAttractorUni(RMPLeaf):
+class GoalAttractorUni(RMPNode):
     """
     Goal Attractor RMP leaf
     """
@@ -272,6 +273,7 @@ class GoalAttractorUni(RMPLeaf):
             y_g = y_g.reshape(-1, 1)
         N = y_g.size
         psi = lambda y: (y - y_g)
+        
         J = lambda y: np.eye(N)
         J_dot = lambda y, y_dot: np.zeros((N, N))
 
@@ -297,10 +299,10 @@ class GoalAttractorUni(RMPLeaf):
 
             M = G
             f = - grad_Phi - Bx_dot - xi
-
             return (f, M)
-
-        RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
+        
+        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+        #RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
 
 
     def update_goal(self, y_g):
@@ -418,7 +420,7 @@ class FormationCentralized(RMPLeaf):
 
 
 
-class Damper(RMPLeaf):
+class Damper(RMPNode):
     """
     Damper RMP leaf
     """
@@ -426,8 +428,8 @@ class Damper(RMPLeaf):
     def __init__(self, name, parent, w=1, eta=1):
 
         psi = lambda y: y
-        J = lambda y: np.eye(2)
-        J_dot = lambda y, y_dot: np.zeros((2, 2))
+        J = lambda y: np.eye(max(y.shape))
+        J_dot = lambda y, y_dot: np.zeros((max(y.shape), max(y.shape)))
 
 
         def RMP_func(x, x_dot):
@@ -438,4 +440,4 @@ class Damper(RMPLeaf):
 
             return (f, M)
 
-        RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
+        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)

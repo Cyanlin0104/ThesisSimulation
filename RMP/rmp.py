@@ -4,16 +4,114 @@
 
 import numpy as np
 
+class RMPTree:
+	
+	def __init__(self, root, nodes=None):
+		# add all nodes to the tree
+		self.root = root
+		self.root.clear()
+		[self.add_node(node) for node in nodes]
+		
+	
+	def add_node(self, node):
+		if node is not None:
+			if node.parent is not None:
+				node.parent.add_child(node)
+	
+	
+	def set_state(self, node, x, x_dot):
+		if node is None:
+			return
+		
+		assert x.ndim == 1 or x.ndim == 2
+		assert x_dot.ndim == 1 or x_dot.ndim == 2
+
+		if x.ndim == 1:
+			x = x.reshape(-1, 1)
+		if x_dot.ndim == 1:
+			x_dot = x_dot.reshape(-1, 1)
+		node.x = x
+		node.x_dot = x_dot
+	
+	def eval_GDS(self, node):
+		if node.RMP_func is not None:
+			node.f, node.M = node.RMP_func(node.x, node.x_dot)
+			
+	def pushforward(self, node):
+		"""
+		Args:
+			inputs:
+			 node: the node with which the operation start
+			
+			outputs:
+			 None
+		"""
+		if node is None:
+			print('node cannot be None!')
+			return
+			
+		for child in node.children:
+			child.x = child.psi(node.x)
+			child.x_dot = np.dot(child.J(node.x), node.x_dot)
+			self.pushforward(child)
+				
+	def pullback(self, node):
+		"""
+		Args:
+			inputs:
+			 node: the node with which the operation start
+			
+			outputs:
+			 None
+		`"""
+		[self.pullback(child) for child in node.children]
+		# for each task space,first evaluate designed geometry dynamics 
+		if node.RMP_func is not None:
+			self.eval_GDS(node)
+		# root node may has not designed geometry imposed 
+		else:
+			node.f = np.zeros_like(node.x, dtype='float64')
+			node.M = np.zeros([max(node.x.shape), max(node.x.shape)], dtype='float64')
+		# pullback all  
+		for child in node.children:
+			J = child.J(node.x)
+			J_dot = child.J_dot(node.x, node.x_dot)
+			assert J.ndim == 2 and J_dot.ndim == 2
+			
+			#node.f += np.dot(J.T, child.f)
+			node.f += np.dot(J.T, (child.f - np.dot(child.M, np.dot(J_dot, node.x_dot))))
+			
+			node.M += np.dot(np.dot(J.T, child.M), J)
+			
+	def resolve(self, node):
+		"""
+		Args:
+			inputs:
+			 node: the node to be resolved
+			
+			outputs:
+			 a: the acceleration resolved from force and inertia matrix 
+		"""
+		return np.dot(np.linalg.pinv(node.M), node.f)
+		
+	def solve(self, x, x_dot):
+		self.set_state(self.root, x, x_dot)
+		self.pushforward(self.root)
+		self.pullback(self.root)
+		
+		return self.resolve(self.root)
+
+
 class RMPNode:
 	"""
 	A Generic RMP node
     """
-	def __init__(self, name, parent, psi, J, J_dot, verbose=False):
+	def __init__(self, name, parent, psi, J, J_dot, RMP_func, verbose=False):
 		self.name = name
 
 		self.parent = parent
 		self.children = []
-
+		self.RMP_func = RMP_func
 		# connect the node to its parent
 		#if self.parent:
 		#	self.parent.add_child(self)
@@ -40,58 +138,10 @@ class RMPNode:
 		"""
 		Add a child to the current node
 	    """
-
 		self.children.append(child)
-
-
-	def pushforward(self):
-		"""
-		apply pushforward operation recursively
-	    """
-
-		if self.verbose:
-			print('%s: pushforward' % self.name)
-
-		if self.psi is not None and self.J is not None:
-			self.x = self.psi(self.parent.x)
-			self.x_dot = np.dot(self.J(self.parent.x), self.parent.x_dot)
-
-			assert self.x.ndim == 2 and self.x_dot.ndim == 2
-
-		[child.pushforward() for child in self.children]
-
-
-
-	def pullback(self):
-		"""
-		apply pullback operation recursively
-	    """
-
-		[child.pullback() for child in self.children]
-
-		if self.verbose:
-			print('%s: pullback' % self.name)
-
-		f = np.zeros_like(self.x, dtype='float64')
-		M = np.zeros((max(self.x.shape), max(self.x.shape)),
-			dtype='float64')
-
-		for child in self.children:
-
-			J_child = child.J(self.x)
-			J_dot_child = child.J_dot(self.x, self.x_dot)
-
-			assert J_child.ndim == 2 and J_dot_child.ndim == 2
-
-			if child.f is not None and child.M is not None:
-				f += np.dot(J_child.T , (child.f - np.dot(
-					np.dot(child.M, J_dot_child), self.x_dot)))
-				M += np.dot(np.dot(J_child.T, child.M), J_child)
-
-		self.f = f
-		self.M = M
-
-
+	
+	def clear(self):
+		self.children.clear()
 
 class RMPRoot(RMPNode):
 	"""
@@ -99,58 +149,7 @@ class RMPRoot(RMPNode):
 	"""
 
 	def __init__(self, name):
-		RMPNode.__init__(self, name, None, None, None, None)
-
-	def set_root_state(self, x, x_dot):
-		"""
-		set the state of the root node for pushforward
-	    """
-
-		assert x.ndim == 1 or x.ndim == 2
-		assert x_dot.ndim == 1 or x_dot.ndim == 2
-
-		if x.ndim == 1:
-			x = x.reshape(-1, 1)
-		if x_dot.ndim == 1:
-			x_dot = x_dot.reshape(-1, 1)
-
-		self.x = x
-		self.x_dot = x_dot
-
-
-	def pushforward(self):
-		"""
-		apply pushforward operation recursively
-	    """
-
-		if self.verbose:
-			print('%s: pushforward' % self.name)
-
-		[child.pushforward() for child in self.children]
-
-
-	def resolve(self):
-		"""
-		compute the canonical-formed RMP
-	    """
-
-		if self.verbose:
-			print('%s: resolve' % self.name)
-
-		self.a = np.dot(np.linalg.pinv(self.M), self.f)
-		return self.a
-
-
-	def solve(self, x, x_dot):
-		"""
-		given the state of the root, solve for the controls
-	    """
-
-		self.set_root_state(x, x_dot)
-		self.pushforward()
-		self.pullback()
-		return self.resolve()
-
+		RMPNode.__init__(self, name, None, None, None, None, None)
 
 class RMPLeaf(RMPNode):
 	"""
@@ -162,36 +161,32 @@ class RMPLeaf(RMPNode):
 		self.RMP_func = RMP_func
 		self.parent_param = parent_param
 
-
-	def eval_leaf(self):
-		"""
-		compute the natural-formed RMP given the state
-	    """
-		self.f, self.M = self.RMP_func(self.x, self.x_dot)
-
-
-	def pullback(self):
-		"""
-		pullback at leaf node is just evaluating the RMP
-	    """
-
-		if self.verbose:
-			print('%s: pullback' % self.name)
-
-		self.eval_leaf()
-
-	def add_child(self, child):
-		print("CANNOT add a child to a leaf node")
-		pass
-
-
-	def update_params(self):
-		"""
-		to be implemented for updating the parameters
-	    """
-		pass
-
-
-	def update(self):
-		self.update_params()
-		self.pushforward()
+if __name__ == '__main__':
+	from rmp import RMPNode
+	from rmp_leaf import NaiveCollisionAvoidance, CollisionAvoidance, GoalAttractorUni, Damper
+	import numpy as np
+	from numpy.linalg import norm
+	from scipy.integrate import odeint
+	import matplotlib.pyplot as plt
+	from rmp_util import obstacle, scene, policy_evaluator, policy_evaluator2
+	
+	x_g = np.array([-1, 2.6])
+	x_o = np.array([0, 0])
+	x_o2 = np.array([0, 2])
+	x = np.array([2.5, -3.2])
+	x_dot = np.array([-1, 2])
+	
+	test_scene = scene(goal=x_g, obstacle=[obstacle(x_o, 0.5)], x=x, x_dot=x_dot)
+	
+	r = RMPNode('Root', None, None, None, None, None, None)
+	#def __init__(self, name, parent, psi, J, J_dot, RMP_func, verbose=False):
+	#leaf1 = CollisionAvoidance('collision_av
+	#oidance', r, None, 
+	#                           epsilon=0.2, alpha=0.01, c=test_scene.obstacle[0].c, 
+	#                           R=test_scene.obstacle[0].r)
+	leaf2 = GoalAttractorUni('goal_attractor', r, test_scene.goal)
+	tree = RMPTree(root=r, nodes=[leaf2])
+	tspan = np.linspace(0,1,2)
+	pe = policy_evaluator2(test_scene, tree, tspan)
+	
+	

@@ -1,0 +1,9 @@
+[I 14:34:32.454 NotebookApp] The port 8088 is already in use, trying another port.
+[I 14:34:32.524 NotebookApp] JupyterLab extension loaded from /home/Cyan/anaconda3/lib/python3.7/site-packages/jupyterlab
+[I 14:34:32.524 NotebookApp] JupyterLab application directory is /home/Cyan/anaconda3/share/jupyter/lab
+[I 14:34:32.531 NotebookApp] Serving notebooks from local directory: /home/Cyan/ThesisSimulation/RMP
+[I 14:34:32.531 NotebookApp] The Jupyter Notebook is running at:
+[I 14:34:32.531 NotebookApp] http://AzureA4:8089/
+[I 14:34:32.531 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 15:30:12.262 NotebookApp] received signal 15, stopping
+[I 15:30:12.262 NotebookApp] Shutting down 0 kernels
