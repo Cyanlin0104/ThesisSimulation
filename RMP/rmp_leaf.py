@@ -5,14 +5,16 @@
 from rmp import RMPNode, RMPRoot, RMPLeaf
 import numpy as np
 from numpy.linalg import norm
+from rmp_util import obstacle
+
 
 
 ### for comparision with Riemannian based method
 class NaiveCollisionAvoidance(RMPNode):
-    def __init__(self, name, parent, parent_param, c=np.zeros(2), R=1,epsilon=0.2,
+    def __init__(self, name, parent, parent_param, obstacle,epsilon=0.2,
         alpha=1e-5, eta=0):
-        self.R = R
-        self.c = c
+        R = obstacle.r
+        c = obstacle.c
         if parent_param:
             psi = None
             J = None
@@ -46,10 +48,11 @@ class CollisionAvoidance(RMPNode):
     Obstacle avoidance RMP leaf
     """
 
-    def __init__(self, name, parent, parent_param, c=np.zeros(2), R=1, epsilon=0.2,
+    def __init__(self, name, parent, parent_param, obstacle, epsilon=0.2,
         alpha=1e-5, eta=0):
 
-        self.R = R
+        R = obstacle.r
+        c = obstacle.c
         self.alpha = alpha
         self.eta = eta
         self.epsilon = epsilon
@@ -61,7 +64,7 @@ class CollisionAvoidance(RMPNode):
 
         else:
             if c.ndim == 1:
-                c = c.reshape(-1, 1)
+                c = self.c.reshape(-1, 1)
 
             N = c.size
 
@@ -441,3 +444,9 @@ class Damper(RMPNode):
             return (f, M)
 
         RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+
+
+class limit(RMPNode):
+    
+    def __init__(self, name, parent):
+    
