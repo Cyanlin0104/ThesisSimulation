@@ -10,6 +10,8 @@ class obstacle:
         self.r = r
         self.c = c.reshape(-1,1)
 
+# -------------------------------------
+
 class scene:
     def __init__(self, goal=None, obstacle=None, x=None, x_dot=None):
         self.goal = goal
@@ -31,6 +33,7 @@ class scene:
         self.init_state = np.concatenate((x, x_dot), axis=None)
     
     # --------------------------------------------
+    
 class policy_evaluator:
     def __init__(self, scene, tree, tspan, method='step'):
         self.scene = scene

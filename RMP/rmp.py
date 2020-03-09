@@ -1,8 +1,13 @@
 # RMPflow basic classes
-# @author Anqi Li
-# @date April 8, 2019
+# @author Cyanlin
+# @date Mar 8, 2020
 
 import numpy as np
+
+# if do not use CLF method, one can uncomment this line
+from cvxopt import matrix, solvers;
+
+
 
 class RMPTree:
     
@@ -11,7 +16,7 @@ class RMPTree:
         self.root = root
         self.ignoreCurvature = ignoreCurvature
         self.nullspace = nullspace
-        self.root.clear()
+        self.root.clear_children()
 
         [self.add_node(node) for node in nodes]
         
@@ -35,14 +40,8 @@ class RMPTree:
             x_dot = x_dot.reshape(-1, 1)
         node.x = x
         node.x_dot = x_dot
-    
-    
-    def eval_GDS(self, node):
-        if node.RMP_func is not None:
-            node.f, node.M = node.RMP_func(node.x, node.x_dot)
-    
-    
-            
+  
+        
     def pushforward(self, node):
         """
         Args:
@@ -64,11 +63,7 @@ class RMPTree:
     def pullback_nullspace(self, node):
         [self.pullback(child) for child in node.children]
         
-        if node.RMP_func is not None:
-            self.eval_GDS(node)
-        else:
-            node.f = np.zeros_like(node.x, dtype='float64')
-            node.M = np.zeros([max(node.x.shape), max(node.x.shape)], dtype='float64')
+        node.eval()
         
         # 1-th node is the primary task
         pri = node.children[0]
@@ -108,13 +103,8 @@ class RMPTree:
              None
         `"""
         [self.pullback(child) for child in node.children]
-        # for each task space,first evaluate designed geometry dynamics 
-        if node.RMP_func is not None:
-            self.eval_GDS(node)
-        # root node may has not designed geometry imposed 
-        else: 
-            node.f = np.zeros_like(node.x, dtype='float64')
-            node.M = np.zeros([max(node.x.shape), max(node.x.shape)], dtype='float64')
+        # for each task space,first evaluate designed geometry dynamics
+        node.eval()
         # pullback all  
         for child in node.children:
             J = child.J(node.x)
@@ -152,17 +142,15 @@ class RMPTree:
         
         return self.resolve(self.root)
 
-
 class RMPNode:
     """
     A Generic RMP node
     """
-    def __init__(self, name, parent, psi, J, J_dot, RMP_func, verbose=False):
+    def __init__(self, name, parent, psi, J, J_dot, verbose=False):
         self.name = name
 
         self.parent = parent
         self.children = []
-        self.RMP_func = RMP_func
         # connect the node to its parent
         #if self.parent:
         #    self.parent.add_child(self)
@@ -191,12 +179,18 @@ class RMPNode:
         """
         self.children.append(child)
     
-    def clear(self):
-        self.children.clear()
-
+    def clear_children(self):
+        self.children.clear()        
+    
+    def eval(self):
+        self.f = np.zeros_like(self.x, dtype='float64')
+        self.M = np.zeros([max(self.x.shape), max(self.x.shape)], dtype='float64') 
+               
+        
 class RMPRoot(RMPNode):
     """
     A root node
+        def __init__(self, name, parent, psi, J, J_dot, verbose=False):
     """
 
     def __init__(self, name):
@@ -207,37 +201,52 @@ class RMPLeaf(RMPNode):
     A leaf node
     """
 
-    def __init__(self, name, parent, parent_param, psi, J, J_dot, RMP_func):
+    def __init__(self, name, parent, psi, J, J_dot, RMP_func):
         RMPNode.__init__(self, name, parent, psi, J, J_dot)
         self.RMP_func = RMP_func
-        self.parent_param = parent_param
+    
+    def eval(self):
+        if self.RMP_func is None:
+            return
+        self.f, self.M = self.RMP_func(self.x, self.x_dot)
 
-if __name__ == '__main__':
-    from rmp import RMPNode
-    from rmp_leaf import NaiveCollisionAvoidance, CollisionAvoidance, GoalAttractorUni, Damper
-    import numpy as np
-    from numpy.linalg import norm
-    from scipy.integrate import odeint
-    import matplotlib.pyplot as plt
-    from rmp_util import obstacle, scene, policy_evaluator, policy_evaluator2
+class RMPLeaf_CLF(RMPLeaf):
+    """
+    Leaf node with Control Lyapunov Function constriant
+    """
     
-    x_g = np.array([-1, 2.6])
-    x_o = np.array([0, 0])
-    x_o2 = np.array([0, 2])
-    x = np.array([2.5, -3.2])
-    x_dot = np.array([-1, 2])
-    
-    test_scene = scene(goal=x_g, obstacle=[obstacle(x_o, 0.5)], x=x, x_dot=x_dot)
-    
-    r = RMPNode('Root', None, None, None, None, None, None)
-    #def __init__(self, name, parent, psi, J, J_dot, RMP_func, verbose=False):
-    #leaf1 = CollisionAvoidance('collision_av
-    #oidance', r, None, 
-    #                           epsilon=0.2, alpha=0.01, c=test_scene.obstacle[0].c, 
-    #                           R=test_scene.obstacle[0].r)
-    leaf2 = GoalAttractorUni('goal_attractor', r, test_scene.goal)
-    tree = RMPTree(root=r, nodes=[leaf2])
-    tspan = np.linspace(0,1,2)
-    pe = policy_evaluator2(test_scene, tree, tspan)
+    def __init__(self, name, parent, psi, J, J_dot, RMP_func, AlterPolicy_func, alpha_func):
+        RMPLeaf.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+        
+        
+        self.AlterPolicy_func = AlterPolicy_func
+        self.alpha_func = alpha_func
+        
+        
+    def eval(self):
+        if self.RMP_func is None:
+            return 
+        # first, compute f = - grad_phi - B*x_dot
+        f, self.M = self.RMP_func(self.x, self.x_dot, with_B=False)
+        # recover x_dot.T * (-grad_phi - xi)
+        
+        # for inequality constraint Gx <= h
+        h = np.dot(self.x_dot.T, f) - self.alpha_func(self.x_dot)
+        G = self.x_dot.T
+        
+        # and cost function
+        P = np.eye(max(self.x.shape))
+        q = 2*np.dot(self.M, self.AlterPolicy_func(self.x, self.x_dot))
+        # fit optimizer 
+        P = matrix(P)
+        q= matrix(q)
+        G = matrix(G)
+        h = matrix(h)
+        
+        solvers.options['show_progress'] = False
+        sol = solvers.qp(P, q, G, h)
+        # optimal
+        self.f = np.array(sol['x'])
+        
     
     

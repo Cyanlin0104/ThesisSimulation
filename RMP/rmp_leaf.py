@@ -2,7 +2,7 @@
 # @author Anqi Li
 # @date April 8, 2019
 
-from rmp import RMPNode, RMPRoot, RMPLeaf
+from rmp import RMPNode, RMPRoot, RMPLeaf, RMPLeaf_CLF
 import numpy as np
 from numpy.linalg import norm
 from rmp_util import obstacle
@@ -10,23 +10,16 @@ from rmp_util import obstacle
 
 
 ### for comparision with Riemannian based method
-class NaiveCollisionAvoidance(RMPNode):
-    def __init__(self, name, parent, parent_param, obstacle,epsilon=0.2,
+class NaiveCollisionAvoidance(RMPLeaf):
+    def __init__(self, name, parent, obstacle, epsilon=0.2,
         alpha=1e-5, eta=0):
         R = obstacle.r
         c = obstacle.c
-        if parent_param:
-            psi = None
-            J = None
-            J_dot = None
-        else:
-            N = c.shape[0]
-            psi = lambda y: np.array(norm(y-c) / R - 1).reshape(-1,1)
-            J = lambda y: (y - c).T / (norm(y-c) * R)
-            J_dot = lambda y, y_dot: np.dot(
-                y_dot.T,
-                (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T)
-                    + 1 / norm(y - c) * np.eye(N))) / R
+
+        N = c.shape[0]
+        psi = lambda y: np.array(norm(y-c) / R - 1).reshape(-1,1)
+        J = lambda y: (y - c).T / (norm(y-c) * R)
+        J_dot = lambda y, y_dot: np.dot(y_dot.T, (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T) + 1 / norm(y - c) * np.eye(N))) / R
             
         def RMP_func(x, x_dot):
             w = 1.0 / x**4
@@ -40,49 +33,41 @@ class NaiveCollisionAvoidance(RMPNode):
             f = -grad_Phi - Bx_dot
             f = np.minimum(np.maximum(f, -1e10), 1e10)
             return (f, M)
-        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
-        #RMPLeaf.__init__(self, name, parent, parent_param, psi, J, J_dot, RMP_func)
+        RMPLeaf.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+        
 
-class CollisionAvoidance(RMPNode):
-    """
-    Obstacle avoidance RMP leaf
-    """
-
-    def __init__(self, name, parent, parent_param, obstacle, epsilon=0.2,
-        alpha=1e-5, eta=0):
-
+class CollisionAvoidance_CLF(RMPLeaf_CLF):
+    
+    def __init__(self, name, parent, obstacle, Alter_func, alpha_func, epsilon=0.2, alpha=1e-5):
         R = obstacle.r
         c = obstacle.c
         self.alpha = alpha
-        self.eta = eta
         self.epsilon = epsilon
+        self.AlterFunc = Alter_func
+        self.alphaFunc = alpha_func
+        # Jacobi 
+    
+        if c.ndim == 1:
+            c = self.c.reshape(-1, 1)
 
-        if parent_param:
-            psi = None
-            J = None
-            J_dot = None
+        N = c.size
 
-        else:
-            if c.ndim == 1:
-                c = self.c.reshape(-1, 1)
-
-            N = c.size
-
-            psi = lambda y: np.array(norm(y - c) / R - 1).reshape(-1,1)
-            J = lambda y: 1.0 / norm(y - c) * (y - c).T / R
-            J_dot = lambda y, y_dot: np.dot(
-                y_dot.T,
-                (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T)
-                    + 1 / norm(y - c) * np.eye(N))) / R
-                    
-                    
-        def RMP_func(x, x_dot):
+        psi = lambda y: np.array(norm(y - c) / R - 1).reshape(-1,1)
+        J = lambda y: 1.0 / norm(y - c) * (y - c).T / R
+        J_dot = lambda y, y_dot: np.dot(
+            y_dot.T,
+            (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T)
+                + 1 / norm(y - c) * np.eye(N))) / R
+        
+        # GDS                        
+        def RMP_func(x, x_dot, with_B=True):
             if x < 0:
                 w = 1e10
                 grad_w = 0
             else:
                 w = 1.0 / x ** 4
                 grad_w = -4.0 / x ** 5
+            
             u = epsilon + np.minimum(0, x_dot) * x_dot
             g = w * u
 
@@ -94,13 +79,216 @@ class CollisionAvoidance(RMPNode):
             M = np.minimum(np.maximum(M, - 1e5), 1e5)
 
             Bx_dot = eta * g * x_dot
+            
+            if with_B:
+                f = - grad_Phi - xi - Bx_dot
+            else:
+                f = - grad_Phi - xi
+            
+            f = np.minimum(np.maximum(f, - 1e10), 1e10)
 
-            f = - grad_Phi - xi - Bx_dot
+            return (f, M)
+        RMPLeaf_CLF(self, name, parent, psi, J, J_dot, RMP_func, Alter_func, alpha_func)
+
+class CollisionAvoidance(RMPLeaf):
+    """
+    Obstacle avoidance RMP leaf
+    """
+    
+    def __init__(self, name, parent, obstacle, epsilon=0.2,
+        alpha=1e-5, eta=0):
+
+        R = obstacle.r
+        c = obstacle.c
+        self.alpha = alpha
+        self.eta = eta
+        self.epsilon = epsilon
+
+        # Jacobi 
+    
+        if c.ndim == 1:
+            c = self.c.reshape(-1, 1)
+
+        N = c.size
+
+        psi = lambda y: np.array(norm(y - c) / R - 1).reshape(-1,1)
+        J = lambda y: 1.0 / norm(y - c) * (y - c).T / R
+        J_dot = lambda y, y_dot: np.dot(
+            y_dot.T,
+            (-1 / norm(y - c) ** 3 * np.dot((y - c), (y - c).T)
+                + 1 / norm(y - c) * np.eye(N))) / R
+        
+        # GDS                        
+        def RMP_func(x, x_dot, with_B=True):
+            if x < 0:
+                w = 1e10
+                grad_w = 0
+            else:
+                w = 1.0 / x ** 4
+                grad_w = -4.0 / x ** 5
+            
+            u = epsilon + np.minimum(0, x_dot) * x_dot
+            g = w * u
+
+            grad_u = 2 * np.minimum(0, x_dot)
+            grad_Phi = alpha * w * grad_w
+            xi = 0.5 * x_dot ** 2 * u * grad_w
+
+            M = g + 0.5 * x_dot * w * grad_u
+            M = np.minimum(np.maximum(M, - 1e5), 1e5)
+
+            Bx_dot = eta * g * x_dot
+            
+            if with_B:
+                f = - grad_Phi - xi - Bx_dot
+            else:
+                f = - grad_Phi - xi
+            
             f = np.minimum(np.maximum(f, - 1e10), 1e10)
 
             return (f, M)
 
-        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+        RMPLeaf.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+
+
+
+class GoalAttractorUni(RMPLeaf):
+    """
+    Goal Attractor RMP leaf
+    """
+
+    def __init__(self, name, parent, y_g, w_u=10, w_l=1, sigma=1,
+        alpha=1, eta=2, gain=1, tol=0.005):
+
+        if y_g.ndim == 1:
+            y_g = y_g.reshape(-1, 1)
+        N = y_g.size
+        psi = lambda y: (y - y_g)
+        
+        J = lambda y: np.eye(N)
+        J_dot = lambda y, y_dot: np.zeros((N, N))
+
+        def RMP_func(x, x_dot):
+            x_norm = norm(x)
+
+            beta = np.exp(- x_norm ** 2 / 2 / (sigma ** 2))
+            w = (w_u - w_l) * beta + w_l
+            s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(
+                    -2 * alpha * x_norm))
+
+            G = np.eye(N) * w
+            if x_norm > tol:
+                grad_Phi = s / x_norm * w * x * gain
+            else:
+                grad_Phi = 0
+            Bx_dot = eta * w * x_dot
+            grad_w = - beta * (w_u - w_l) / sigma ** 2 * x
+
+            x_dot_norm = norm(x_dot)
+            xi = -0.5 * (x_dot_norm ** 2 * grad_w - 2 *
+                np.dot(np.dot(x_dot, x_dot.T), grad_w))
+
+            M = G
+            f = - grad_Phi - Bx_dot - xi
+            return (f, M)
+        
+        RMPLeaf.__init__(self, name, parent, psi, J, J_dot, RMP_func)
+        #RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
+
+
+    def update_goal(self, y_g):
+        """
+        update the position of the goal
+        """
+        
+        if y_g.ndim == 1:
+            y_g = y_g.reshape(-1, 1)
+        N = y_g.size
+        self.psi = lambda y: (y - y_g)
+        self.J = lambda y: np.eye(N)
+        self.J_dot = lambda y, y_dot: np.zeros((N, N))
+
+class GoalAttractorUni_CLF(RMPLeaf_CLF):
+    """
+    Goal Attractor RMP leaf
+    """
+
+    def __init__(self, name, parent, y_g, w_u=10, w_l=1, sigma=1,
+        alpha=1, eta=2, gain=1, tol=0.005):
+
+        if y_g.ndim == 1:
+            y_g = y_g.reshape(-1, 1)
+        N = y_g.size
+        psi = lambda y: (y - y_g)
+        
+        J = lambda y: np.eye(N)
+        J_dot = lambda y, y_dot: np.zeros((N, N))
+        
+        
+        def u(x, x_dot):
+            x_norm = norm(x)
+
+            beta = np.exp(- x_norm ** 2 / 2 / (sigma ** 2))
+            w = (w_u - w_l) * beta + w_l
+            s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(
+                    -2 * alpha * x_norm))
+
+            G = np.eye(N) * w
+            if x_norm > tol:
+                grad_Phi = s / x_norm * w * x * gain
+            else:
+                grad_Phi = np.zeros_like(x)
+            
+            return grad_Phi
+        
+        def alpha_func(x_dot):
+            d = 0
+            return d * norm(x_dot)
+            
+        def RMP_func(x, x_dot, with_B=True):
+            x_norm = norm(x)
+
+            beta = np.exp(- x_norm ** 2 / 2 / (sigma ** 2))
+            w = (w_u - w_l) * beta + w_l
+            s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(
+                    -2 * alpha * x_norm))
+
+            G = np.eye(N) * w
+            if x_norm > tol:
+                grad_Phi = s / x_norm * w * x * gain
+            else:
+                grad_Phi = 0
+            Bx_dot = eta * w * x_dot
+            grad_w = - beta * (w_u - w_l) / sigma ** 2 * x
+
+            x_dot_norm = norm(x_dot)
+            xi = -0.5 * (x_dot_norm ** 2 * grad_w - 2 *
+                np.dot(np.dot(x_dot, x_dot.T), grad_w))
+
+            M = G
+            
+            if with_B:
+                f = - grad_Phi - Bx_dot - xi
+            else:
+                f = - grad_Phi - xi
+            return (f, M)
+        
+        RMPLeaf_CLF.__init__(self, name, parent, psi, J, J_dot, RMP_func, u, alpha_func)
+        #RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
+
+
+    def update_goal(self, y_g):
+        """
+        update the position of the goal
+        """
+        
+        if y_g.ndim == 1:
+            y_g = y_g.reshape(-1, 1)
+        N = y_g.size
+        self.psi = lambda y: (y - y_g)
+        self.J = lambda y: np.eye(N)
+        self.J_dot = lambda y, y_dot: np.zeros((N, N))
+
 
 
 
@@ -264,62 +452,6 @@ class CollisionAvoidanceCentralized(RMPLeaf):
 
 
 
-class GoalAttractorUni(RMPNode):
-    """
-    Goal Attractor RMP leaf
-    """
-
-    def __init__(self, name, parent, y_g, w_u=10, w_l=1, sigma=1,
-        alpha=1, eta=2, gain=1, tol=0.005):
-
-        if y_g.ndim == 1:
-            y_g = y_g.reshape(-1, 1)
-        N = y_g.size
-        psi = lambda y: (y - y_g)
-        
-        J = lambda y: np.eye(N)
-        J_dot = lambda y, y_dot: np.zeros((N, N))
-
-        def RMP_func(x, x_dot):
-            x_norm = norm(x)
-
-            beta = np.exp(- x_norm ** 2 / 2 / (sigma ** 2))
-            w = (w_u - w_l) * beta + w_l
-            s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(
-                    -2 * alpha * x_norm))
-
-            G = np.eye(N) * w
-            if x_norm > tol:
-                grad_Phi = s / x_norm * w * x * gain
-            else:
-                grad_Phi = 0
-            Bx_dot = eta * w * x_dot
-            grad_w = - beta * (w_u - w_l) / sigma ** 2 * x
-
-            x_dot_norm = norm(x_dot)
-            xi = -0.5 * (x_dot_norm ** 2 * grad_w - 2 *
-                np.dot(np.dot(x_dot, x_dot.T), grad_w))
-
-            M = G
-            f = - grad_Phi - Bx_dot - xi
-            return (f, M)
-        
-        RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
-        #RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
-
-
-    def update_goal(self, y_g):
-        """
-        update the position of the goal
-        """
-        
-        if y_g.ndim == 1:
-            y_g = y_g.reshape(-1, 1)
-        N = y_g.size
-        self.psi = lambda y: (y - y_g)
-        self.J = lambda y: np.eye(N)
-        self.J_dot = lambda y, y_dot: np.zeros((N, N))
-
 
 
 class FormationDecentralized(RMPLeaf):
@@ -444,9 +576,4 @@ class Damper(RMPNode):
             return (f, M)
 
         RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
-
-
-class limit(RMPNode):
-    
-    def __init__(self, name, parent):
     
