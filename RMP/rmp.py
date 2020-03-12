@@ -226,7 +226,7 @@ class RMPLeaf_CLF(RMPLeaf):
     def eval(self):
         if self.RMP_func is None:
             return 
-        # first, compute f = - grad_phi - B*x_dot
+        # first, compute f = - grad_phi - xi
         f, self.M = self.RMP_func(self.x, self.x_dot, with_B=False)
         # recover x_dot.T * (-grad_phi - xi)
         
@@ -237,6 +237,8 @@ class RMPLeaf_CLF(RMPLeaf):
         # and cost function
         P = np.eye(max(self.x.shape))
         q = 2*np.dot(self.M, self.AlterPolicy_func(self.x, self.x_dot))
+        #q = 2 * self.AlterPolicy_func(self.x, self.x_dot)
+        
         # fit optimizer 
         P = matrix(P)
         q= matrix(q)

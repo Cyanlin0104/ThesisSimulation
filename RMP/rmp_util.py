@@ -85,7 +85,7 @@ class policy_evaluator:
         axes.axis([-5,5,-5,5])
         axes.set_aspect('equal', 'box')
     
-    def video(self, fig, axes, frames=None, interval=None):
+    def video(self, fig, axes, show_path=True,frames=None, interval=None):
         if not self.method == 'step':
             print("step method is not selected")
             return 0
@@ -94,7 +94,10 @@ class policy_evaluator:
         if interval is None:
             interval = 20
         x, y = [], []
-        ln, = plt.plot(x, y, 'b-')        
+        if not show_path:
+            ln, = axes.plot(x, y, 'bo')
+        else:
+            ln, = axes.plot(x, y, 'b-')        
         def init():
             if self.scene.goal is not None:
                 axes.plot(self.scene.goal[0], self.scene.goal[1], 'go')
@@ -104,6 +107,9 @@ class policy_evaluator:
             axes.axis([-5,5,-5,5])
             return ln,
         def update(i):
+            if not show_path:
+                x.clear()
+                y.clear()
             x.append(self.sol[i][0])
             y.append(self.sol[i][1])
             ln.set_data(x, y)

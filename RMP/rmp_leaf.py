@@ -155,7 +155,7 @@ class CollisionAvoidance(RMPLeaf):
 class GoalAttractorUni(RMPLeaf):
     """
     Goal Attractor RMP leaf
-    """
+    """	
 
     def __init__(self, name, parent, y_g, w_u=10, w_l=1, sigma=1,
         alpha=1, eta=2, gain=1, tol=0.005):
@@ -209,11 +209,11 @@ class GoalAttractorUni(RMPLeaf):
         self.J_dot = lambda y, y_dot: np.zeros((N, N))
 
 class GoalAttractorUni_CLF(RMPLeaf_CLF):
-    """
+    """	
     Goal Attractor RMP leaf
     """
 
-    def __init__(self, name, parent, y_g, w_u=10, w_l=1, sigma=1,
+    def __init__(self, name, parent, y_g, d=0, w_u=10, w_l=1, sigma=1,
         alpha=1, eta=2, gain=1, tol=0.005):
 
         if y_g.ndim == 1:
@@ -232,8 +232,6 @@ class GoalAttractorUni_CLF(RMPLeaf_CLF):
             w = (w_u - w_l) * beta + w_l
             s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(
                     -2 * alpha * x_norm))
-
-            G = np.eye(N) * w
             if x_norm > tol:
                 grad_Phi = s / x_norm * w * x * gain
             else:
@@ -241,8 +239,11 @@ class GoalAttractorUni_CLF(RMPLeaf_CLF):
             
             return grad_Phi
         
+        def u2(x, x_dot):
+            
+            return gain * x
+        
         def alpha_func(x_dot):
-            d = 0
             return d * norm(x_dot)
             
         def RMP_func(x, x_dot, with_B=True):
@@ -273,7 +274,7 @@ class GoalAttractorUni_CLF(RMPLeaf_CLF):
                 f = - grad_Phi - xi
             return (f, M)
         
-        RMPLeaf_CLF.__init__(self, name, parent, psi, J, J_dot, RMP_func, u, alpha_func)
+        RMPLeaf_CLF.__init__(self, name, parent, psi, J, J_dot, RMP_func, u2, alpha_func)
         #RMPLeaf.__init__(self, name, parent, None, psi, J, J_dot, RMP_func)
 
 
@@ -576,4 +577,56 @@ class Damper(RMPNode):
             return (f, M)
 
         RMPNode.__init__(self, name, parent, psi, J, J_dot, RMP_func)
-    
+
+class JointLimit_Avoidance(RMPLeaf):
+    """
+    JointLimit Avoidance Leaf
+    """
+    def __init__(self, name, parent, ll, lu, sigma):
+        psi = lambda y: y
+        J = lambda y: np.eye(max(y.shape))
+        J_dot = lambda y, y_dot: np.zeros(max(y.shape),
+            max(y,shape))
+        
+
+        def A(x, x_dot):
+            a = np.zeros(max(x.shape))
+            for i in range(max(x.shape)):
+            # how close to upperlimit
+                s = (x[i] - ll[i]) / (lu[i] - ll[i])
+                # ?
+                d = 4*s*(1-s)
+                
+                # alpha is the gate indicates if the joint moving towards the limits
+                x_dot_p = max(x_dot[i], 0)
+                x_dot_n = min(x_dot[i], 0)
+                
+                alpha_u = 1 - np.exp(-x_dot_p**2/(2*sigma**2))
+                alpha_l = 1 - np.exp(-x_dot_n**2/(2*sigma**2))
+                
+                """
+                1. when x -> lu and x_dot > 0
+                   b -> d 
+                2. when x -> lu and x_dot < 0
+                   b -> 1 
+                3. when x -> ll and x_dot > 0
+                   b -> (1 - s) * 1 -> 1
+                4. when x -> ll and x_dot < 0
+                   b -> (1 - s) * d -> d
+                 
+                in other words, if close to either limit and
+                moving toward it, use d, otherwise, use 1            
+                """
+                b = s*(alpha_u*d + (1-alpha_u)*1) + 
+                    (1 - s)*(alpha_l*d + (1-alpha_l)*1)
+                
+                a[i] = 1 / b**2
+            
+            return np.diag(a) 
+        
+        def Xi(x_dot):
+            a = np.zeros(max(x_dot.shape))
+            for i in range(max(x_dot.shape)):
+                
+        def RMP_func(x, x_dot):
+            
