@@ -1,2 +1,3 @@
 #ignore all check points of Jupyter Notebook
 **/.ipynb_checkpoints
+*nohup.out
