@@ -3239,3 +3239,248 @@
 [I 12:12:08.396 NotebookApp] Shutting down 2 kernels
 [I 12:12:08.505 NotebookApp] Kernel shutdown: e7e0d4db-8f0f-4c42-94de-6370c3864b4c
 [I 12:12:08.505 NotebookApp] Kernel shutdown: 68e78f3b-88d8-4292-8dad-a97d31b72e90
+[I 18:24:11.990 NotebookApp] Serving notebooks from local directory: /Users/linchenhan/ThesisSimulation
+[I 18:24:11.991 NotebookApp] The Jupyter Notebook is running at:
+[I 18:24:11.991 NotebookApp] http://localhost:8888/?token=bad7de019bd09f3c4a238f21bbcb5a59e70af7b546241bb2
+[I 18:24:11.991 NotebookApp]  or http://127.0.0.1:8888/?token=bad7de019bd09f3c4a238f21bbcb5a59e70af7b546241bb2
+[I 18:24:11.991 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 18:24:11.996 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///Users/linchenhan/Library/Jupyter/runtime/nbserver-1990-open.html
+    Or copy and paste one of these URLs:
+        http://localhost:8888/?token=bad7de019bd09f3c4a238f21bbcb5a59e70af7b546241bb2
+     or http://127.0.0.1:8888/?token=bad7de019bd09f3c4a238f21bbcb5a59e70af7b546241bb2
+[I 18:25:45.732 NotebookApp] Kernel started: 256f291d-76ed-4c4d-89a9-ee647d1bf296
+[I 18:26:14.431 NotebookApp] Starting buffering for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 18:26:14.851 NotebookApp] Kernel restarted: 256f291d-76ed-4c4d-89a9-ee647d1bf296
+[I 18:26:15.701 NotebookApp] Restoring connection for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 18:26:15.701 NotebookApp] Replaying 3 buffered messages
+[I 18:27:45.719 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 18:29:45.714 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 18:30:35.284 NotebookApp] Starting buffering for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 18:30:35.704 NotebookApp] Kernel restarted: 256f291d-76ed-4c4d-89a9-ee647d1bf296
+[I 18:30:36.604 NotebookApp] Restoring connection for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 18:30:36.604 NotebookApp] Replaying 5 buffered messages
+[I 19:03:54.293 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 19:25:51.618 NotebookApp] Starting buffering for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 19:25:52.039 NotebookApp] Kernel restarted: 256f291d-76ed-4c4d-89a9-ee647d1bf296
+[I 19:25:53.188 NotebookApp] Restoring connection for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 19:25:53.189 NotebookApp] Replaying 5 buffered messages
+[I 19:26:58.038 NotebookApp] KernelRestarter: restarting kernel (1/5), keep random ports
+WARNING:root:kernel 256f291d-76ed-4c4d-89a9-ee647d1bf296 restarted
+[I 19:27:27.607 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 19:29:27.611 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 19:36:13.254 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 19:49:51.820 NotebookApp] Starting buffering for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  above warning has been issued i1 times.    
+       it will not be issued again for this problem  
+      in above message,  i1 =        10
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  above warning has been issued i1 times.    
+       it will not be issued again for this problem  
+      in above message,  i1 =        10
+[I 19:49:52.259 NotebookApp] Kernel restarted: 256f291d-76ed-4c4d-89a9-ee647d1bf296
+[I 19:49:53.505 NotebookApp] Restoring connection for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[I 19:49:53.505 NotebookApp] Replaying 5 buffered messages
+[I 19:50:53.525 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 19:54:53.524 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[I 19:56:53.521 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[W 21:24:56.046 NotebookApp] Notebook Functions.ipynb is not trusted
+[I 21:24:56.164 NotebookApp] Kernel started: 28f5ed6f-0775-4c9c-b832-a89e17551d99
+[I 21:26:56.422 NotebookApp] Saving file at /Functions.ipynb
+[W 21:26:56.423 NotebookApp] Notebook Functions.ipynb is not trusted
+[I 21:29:02.797 NotebookApp] Starting buffering for 28f5ed6f-0775-4c9c-b832-a89e17551d99:d07b4cb8ea9f4f23be2571f9d2637aea
+[W 21:29:02.910 NotebookApp] Notebook Functions.ipynb is not trusted
+[I 21:31:03.131 NotebookApp] Saving file at /Functions.ipynb
+[W 21:31:03.132 NotebookApp] Notebook Functions.ipynb is not trusted
+[I 21:33:03.133 NotebookApp] Saving file at /Functions.ipynb
+[W 21:33:03.135 NotebookApp] Notebook Functions.ipynb is not trusted
+[I 21:35:03.129 NotebookApp] Saving file at /Functions.ipynb
+[W 21:35:03.130 NotebookApp] Notebook Functions.ipynb is not trusted
+[I 21:36:52.631 NotebookApp] Saving file at /Functions.ipynb
+[I 21:37:03.145 NotebookApp] Saving file at /Functions.ipynb
+[I 21:38:43.062 NotebookApp] Starting buffering for 256f291d-76ed-4c4d-89a9-ee647d1bf296:2f0c6293eab24442bf58362ff51a7d13
+[W 21:38:43.182 NotebookApp] Notebook RMP/rmp_example.ipynb is not trusted
+[W 21:38:48.361 NotebookApp] Notebook Phase_Portrait .ipynb is not trusted
+[I 21:38:48.792 NotebookApp] Kernel started: 43861e77-4580-495f-bad2-1af2d935f1c1
+[I 21:38:53.220 NotebookApp] Starting buffering for 43861e77-4580-495f-bad2-1af2d935f1c1:c3f84622665a4c78811750d9c89c493d
+[W 21:38:59.432 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:38:59.778 NotebookApp] Kernel started: e4f0941d-2a79-4de5-b64c-f8cfa5cc6e37
+[I 21:40:43.413 NotebookApp] Saving file at /RMP/rmp_example.ipynb
+[W 21:40:43.414 NotebookApp] Notebook RMP/rmp_example.ipynb is not trusted
+[I 21:40:59.793 NotebookApp] Saving file at /RMP.ipynb
+[W 21:40:59.793 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:42:59.790 NotebookApp] Saving file at /RMP.ipynb
+[W 21:42:59.791 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:44:02.923 NotebookApp] Saving file at /RMP.ipynb
+[W 21:44:02.924 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:44:47.811 NotebookApp] Saving file at /RMP.ipynb
+[W 21:44:47.812 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:46:59.786 NotebookApp] Saving file at /RMP.ipynb
+[W 21:46:59.787 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:48:55.952 NotebookApp] Saving file at /RMP.ipynb
+[W 21:48:55.953 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:50:59.791 NotebookApp] Saving file at /RMP.ipynb
+[W 21:50:59.792 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:52:59.810 NotebookApp] Saving file at /RMP.ipynb
+[W 21:52:59.811 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:54:59.804 NotebookApp] Saving file at /RMP.ipynb
+[W 21:54:59.805 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:56:59.809 NotebookApp] Saving file at /RMP.ipynb
+[W 21:56:59.809 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 21:58:59.807 NotebookApp] Saving file at /RMP.ipynb
+[W 21:58:59.808 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:00:59.813 NotebookApp] Saving file at /RMP.ipynb
+[W 22:00:59.815 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:02:59.815 NotebookApp] Saving file at /RMP.ipynb
+[W 22:02:59.816 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:04:59.814 NotebookApp] Saving file at /RMP.ipynb
+[W 22:04:59.815 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:14:41.827 NotebookApp] Saving file at /RMP.ipynb
+[W 22:14:41.828 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:16:41.821 NotebookApp] Saving file at /RMP.ipynb
+[W 22:16:41.823 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:18:41.822 NotebookApp] Saving file at /RMP.ipynb
+[W 22:18:41.823 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:20:41.818 NotebookApp] Saving file at /RMP.ipynb
+[W 22:20:41.819 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:22:41.838 NotebookApp] Saving file at /RMP.ipynb
+[W 22:22:41.839 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:22:51.019 NotebookApp] Saving file at /RMP.ipynb
+[W 22:22:51.020 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 22:22:51.422 NotebookApp] Saving file at /RMP.ipynb
+[W 22:22:51.422 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 23:39:02.342 NotebookApp] Saving file at /RMP.ipynb
+[W 23:39:02.346 NotebookApp] Notebook RMP.ipynb is not trusted
+[I 23:39:03.688 NotebookApp] Starting buffering for e4f0941d-2a79-4de5-b64c-f8cfa5cc6e37:f99e9ef45b51428fbb16cdb189ccc51c
+[I 23:39:04.136 NotebookApp] Starting buffering for 28f5ed6f-0775-4c9c-b832-a89e17551d99:48c06c7966a64c5cb51d65a22182f1f5
+[I 23:39:04.437 NotebookApp] Starting buffering for 256f291d-76ed-4c4d-89a9-ee647d1bf296:f0caf17313a94094a518c9e9b050b254
+[C 10:04:28.095 NotebookApp] received signal 15, stopping
+[I 10:04:28.640 NotebookApp] Shutting down 4 kernels
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  warning..internal t (=r1) and h (=r2) are  
+       such that in the machine, t + h = t on the next step  
+       (h = step size). solver will continue anyway  
+      in above,  r1 =  0.9396988965877D+02   r2 =  0.1068458969948D-14
+ lsoda--  above warning has been issued i1 times.    
+       it will not be issued again for this problem  
+      in above message,  i1 =        10
+[I 10:04:29.304 NotebookApp] Kernel shutdown: 256f291d-76ed-4c4d-89a9-ee647d1bf296
+[I 10:04:29.307 NotebookApp] Kernel shutdown: 28f5ed6f-0775-4c9c-b832-a89e17551d99
+[I 10:04:29.310 NotebookApp] Kernel shutdown: 43861e77-4580-495f-bad2-1af2d935f1c1
+[I 10:04:29.312 NotebookApp] Kernel shutdown: e4f0941d-2a79-4de5-b64c-f8cfa5cc6e37

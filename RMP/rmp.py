@@ -5,17 +5,17 @@
 import numpy as np
 
 # if do not use CLF method, one can uncomment this line
-from cvxopt import matrix, solvers;
-
+from cvxopt import matrix, solvers
 
 
 class RMPTree:
     
-    def __init__(self, root, nodes=None, ignoreCurvature=False, nullspace=False):
+    def __init__(self, root, nodes=None, ignoreCurvature=False, nullspace=False, lite=False):
         # add all nodes to the tree
         self.root = root
         self.ignoreCurvature = ignoreCurvature
         self.nullspace = nullspace
+        self.lite = lite
         self.root.clear_children()
 
         [self.add_node(node) for node in nodes]
@@ -26,8 +26,8 @@ class RMPTree:
             if node.parent is not None:
                 node.parent.add_child(node)
     
-    
-    def set_state(self, node, x, x_dot):
+    @staticmethod
+    def set_state(node, x, x_dot):
         if node is None:
             return
         
@@ -40,8 +40,7 @@ class RMPTree:
             x_dot = x_dot.reshape(-1, 1)
         node.x = x
         node.x_dot = x_dot
-  
-        
+
     def pushforward(self, node):
         """
         Args:
@@ -118,8 +117,9 @@ class RMPTree:
             
             #node.M = np.eye(node.x.shape[0])
             node.M += np.dot(np.dot(J.T, child.M), J)
-            
-    def resolve(self, node):
+    
+    @staticmethod
+    def resolve(node):
         """
         Args:
             inputs:
@@ -131,18 +131,52 @@ class RMPTree:
         #print("root node M \n", node.M)
         #print("root node f \n", node.f)
         return np.dot(np.linalg.pinv(node.M), node.f)
-        
+    
+
     def solve(self, x, x_dot):
         self.set_state(self.root, x, x_dot)
         self.pushforward(self.root)
         if self.nullspace:
             self.pullback_nullspace(self.root)
+        elif self.lite:
+            self.relative_pullback(self.root)
         else:
             self.pullback(self.root, self.ignoreCurvature)
-        
         return self.resolve(self.root)
+    
+    def relative_pullback(self, root):
+        # In this version the two leafs must share one parent
+        if len(root.children) != 2:
+            raise ValueError('lite only support two child nodes')
+        node = root.children[0]
+        node_rel = root.children[1]
+        # evaluate relative rmp
+        node_rel.f, node_rel.M, g, Xi, xi, Bx_dot, grad_Phi = node_rel.RNP_func(node_rel.x, node_rel.x_dot, terms=True)
+        x = root.x
+        x_dot = root.x_dot
+        Jg = node.J(x)
+        Jg_dot = node.J_dot(x, x_dot)
+        Jc = node_rel.J(x)
+        # this is the reason why one should first eval node_rel
+        Mc = node_rel.M
+        Jg_pinv = np.linalg.pinv(Jg)
+        #Mg = np.dot(Jc.T, np.dot(Mc, Jc))
+        Mg = Mc*np.eye(max(node.x.shape))
+        
+        # evaluate major rmp
+        node.eval()
+        # composed inertia matrix
+        # ToDo add curvature?
+        node.M += Mg 
+
+        # pullback major RMP to root
+        root.eval()
+        root.f += np.dot(Jg.T, (node.f - np.dot(node.M, np.dot(Jg_dot, root.x_dot))))
+        root.M += np.dot(np.dot(Jg.T, node.M), Jg)
+
 
 class RMPNode:
+
     """
     A Generic RMP node
     """
@@ -195,6 +229,8 @@ class RMPRoot(RMPNode):
 
     def __init__(self, name):
         RMPNode.__init__(self, name, None, None, None, None, None)
+    
+
 
 class RMPLeaf(RMPNode):
     """
@@ -215,30 +251,28 @@ class RMPLeaf_CLF(RMPLeaf):
     Leaf node with Control Lyapunov Function constriant
     """
     
-    def __init__(self, name, parent, psi, J, J_dot, RMP_func, AlterPolicy_func, alpha_func):
+    def __init__(self, name, parent, psi, J, J_dot, RMP_func, policy_candidate, alpha_func):
         RMPLeaf.__init__(self, name, parent, psi, J, J_dot, RMP_func)
         
         
-        self.AlterPolicy_func = AlterPolicy_func
+        self.policy_candidate = policy_candidate
         self.alpha_func = alpha_func
-        
+        self.V_dot = [] #for debug
         
     def eval(self):
         if self.RMP_func is None:
             return 
-        # first, compute f = - grad_phi - xi
-        f, self.M = self.RMP_func(self.x, self.x_dot, with_B=False)
-        # recover x_dot.T * (-grad_phi - xi)
+        _, self.M, _, _, xi, _, grad_Phi = self.RMP_func(self.x, self.x_dot, terms=True)
         
         # for inequality constraint Gx <= h
-        h = np.dot(self.x_dot.T, f) - self.alpha_func(self.x_dot)
-        G = self.x_dot.T
+        h = np.dot(self.x_dot.T, -xi - grad_Phi) - self.alpha_func(self.x_dot)
+        G = self.x_dot.T 
         
         # and cost function
         P = np.eye(max(self.x.shape))
-        q = 2*np.dot(self.M, self.AlterPolicy_func(self.x, self.x_dot))
-        #q = 2 * self.AlterPolicy_func(self.x, self.x_dot)
+        q = -2*np.dot(self.policy_candidate(self.x, self.x_dot).T, self.M).T
         
+
         # fit optimizer 
         P = matrix(P)
         q= matrix(q)
@@ -247,8 +281,13 @@ class RMPLeaf_CLF(RMPLeaf):
         
         solvers.options['show_progress'] = False
         sol = solvers.qp(P, q, G, h)
+        
+        
         # optimal
         self.f = np.array(sol['x'])
+
+        self.V_dot.append(np.dot(self.x_dot.T, self.f + xi + grad_Phi))
+        #print(sol['status'])
+        #print(V_dot)
         
-    
     

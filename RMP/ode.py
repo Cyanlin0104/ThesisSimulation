@@ -23,7 +23,7 @@ def ode_Euler(f, tspan, x0):
     return xs
 
 
-def ode_RK(f, tspan, x0):
+def ode_RK(f, x0, tspan):
     """
     Args:
      
@@ -46,7 +46,7 @@ def ode_RK(f, tspan, x0):
     Beta2 = 1 / (2*alpha)
     Beta1 = 1 - Beta2
     for i in range(1, n):
-        k1 = f(0, xs[i-1])
-        k2 = f(0, xs[i-1] + alpha*h*k1)
+        k1 = f(xs[i-1], 0)
+        k2 = f(xs[i-1] + alpha*h*k1, 0)
         xs[i] = xs[i-1] + (Beta1*k1 + Beta2*k2)*h
     return xs

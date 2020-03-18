@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import odeint, solve_ivp
 import matplotlib.pyplot as plt
-
+from ode import ode_RK
 from matplotlib import animation, rc
 
 
@@ -24,14 +24,13 @@ class scene:
             [obs.c.reshape(-1,1) for obs in obstacle]
             self.dim = obstacle[0].c.size
         if x is None:
-            x = np.zeros(dim)
+            x = np.zeros(self.dim)
         if x_dot is None:
-            x_dot = np.zeros(dim)
+            x_dot = np.zeros(self.dim)
         self.init_state = np.concatenate((x, x_dot), axis=None)
 
-    def set_init_state(x, x_dot):
+    def set_init_state(self, x, x_dot):
         self.init_state = np.concatenate((x, x_dot), axis=None)
-    
     # --------------------------------------------
     
 class policy_evaluator:
@@ -40,12 +39,23 @@ class policy_evaluator:
         self.tree = tree
         self.tspan = tspan
         self.method = method
+        # for data saving
+        self.x_ddot_data = []
         if not method =='step':
-            sol_ = solve_ivp(self.dynamics_ivp, [self.tspan[0], self.tspan[-1]], self.scene.init_state)
+            sol_ = solve_ivp(self.dynamics_ivp, [self.tspan[0], self.tspan[-1]], self.scene.init_state, method='RK23')
             self.sol = sol_.y.T
         else:
-            self.sol = odeint(self.dynamics, self.scene.init_state, self.tspan)               
-    
+            #self.sol = odeint(self.dynamics, self.scene.init_state, self.tspan, full_output=1)               
+            self.sol = ode_RK(self.dynamics, self.scene.init_state, self.tspan)
+
+    def writeTraj(self, file='./traj.txt'):
+        self.x_ddot_data = np.concatenate(self.x_ddot_data, axis=0)
+        print(self.x_ddot_data.shape)
+        print(self.sol.shape)
+        out = np.concatenate([self.sol, self.x_ddot_data], axis=None)
+        print(out.shape)
+        np.savetxt(file, out, fmt='%.4f')
+        
     def dynamics_ivp(self, t, state):
         state = state.reshape(2, -1)
         x = state[0]
@@ -60,6 +70,7 @@ class policy_evaluator:
         x_dot = state[1]
         x_ddot = self.tree.solve(x, x_dot)
         state_dot = np.concatenate((x_dot, x_ddot), axis=None)
+        self.x_ddot_data.append(x_ddot.reshape(1, -1))
         return state_dot
     
     def step_cost(self):
@@ -90,7 +101,10 @@ class policy_evaluator:
             print("step method is not selected")
             return 0
         if frames is None:
-            frames = self.step_cost()[0]
+            try:
+                frames = self.step_cost()[0]
+            except TypeError:
+                frames = self.tspan.size
         if interval is None:
             interval = 20
         x, y = [], []
