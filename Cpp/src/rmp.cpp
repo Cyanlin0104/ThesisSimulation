@@ -1,26 +1,16 @@
 #include "../Include/rmp.h"
 
-RMPNode::RMPNode(){
+//#define debug
 
-}
-
-RMPNode::RMPNode(std::string _name, 
-                RMPNode* _parent, 
-                int _dim, 
-                VectorXd (*_psi)(const VectorXd&), 
-                MatrixXd (*_J)(const VectorXd&), 
-                MatrixXd (*_J_dot)(const VectorXd&, const VectorXd&)):
-name(_name),
-dim(_dim),
-parent(_parent)
+RMPNode::RMPNode(std::string name, RMPNode* parent, int dim):
+name(name),
+dim(dim),
+parent(parent),
+x(VectorXd::Zero(dim)),
+x_dot(VectorXd::Zero(dim)),
+f(VectorXd::Zero(dim)),
+M(MatrixXd::Zero(dim, dim))
 {
-    this->psi = _psi;
-    this->J = _J;
-    this->J_dot = _J_dot;
-    this->x = VectorXd::Zero(dim);
-    this->x_dot = VectorXd::Zero(dim);
-    this->f = VectorXd::Zero(dim);
-    this->M = MatrixXd::Zero(dim, dim);
 }
 
 RMPNode::~RMPNode(){
@@ -36,73 +26,86 @@ void RMPNode::clear_children(){
 }
 
 void RMPNode::eval(){
-
+    //this->f = VectorXd::Zero(dim); 
+    //this->M = MatrixXd::Zero(dim, dim);   
 }
 
 
-
-RMPRoot::RMPRoot()
-:RMPNode()
-{
-
-}
 
 RMPRoot::RMPRoot(std::string _name, int _dim)
-:RMPNode(_name, NULL, _dim, NULL, NULL, NULL)
+:RMPNode(_name, NULL, _dim)
 {
 }
 
+RMPRoot::~RMPRoot(){
+
+}
+
+VectorXd RMPRoot::psi(const VectorXd& y){
+    return VectorXd::Zero(dim);
+}
+
+MatrixXd RMPRoot::J(const VectorXd& y){
+    return MatrixXd::Zero(dim, dim);
+}
+
+
+MatrixXd RMPRoot::J_dot(const VectorXd& y , const VectorXd& y_dot){
+    return MatrixXd::Zero(dim, dim);
+}
 
 void RMPRoot::eval(){
     this->f = VectorXd::Zero(dim); 
-    this->M = MatrixXd::Zero(dim, dim);   
+    this->M = MatrixXd::Zero(dim, dim);
 }
 
-RMPLeaf::RMPLeaf(){
 
-}
 
-RMPLeaf::RMPLeaf(std::string _name, 
-                RMPNode* _parent, 
-                int _dim, 
-                VectorXd (*_psi)(const VectorXd&), 
-                MatrixXd (*_J)(const VectorXd&), 
-                MatrixXd (*_J_dot)(const VectorXd&, const VectorXd&),
-                std::tuple<VectorXd, MatrixXd> (*_RMP_func)(VectorXd, VectorXd))
-: RMPNode(_name, _parent, _dim, _psi, _J, _J_dot)
+RMPLeaf::RMPLeaf(std::string name, RMPNode* parent, int dim)
+:RMPNode(name, parent, dim)
 {
-    this->RMP_func = _RMP_func;
+
+}
+
+RMPLeaf::~RMPLeaf(){
+
 }
 
 void RMPLeaf::eval(){
-    if(this->RMP_func == NULL)
-        return;
-    auto[f, M] = this->RMP_func(this->x, this->x_dot);
-    
+    // evaluate GDS
+    // c++17
+    //auto[f, M] = this->RMP_func(this->x, this->x_dot);
+    std::tie(f, M) = this->GDS_func(this->x, this->x_dot);
 }
-
 
 
 RMPTree::RMPTree(){
 
 }
 
-RMPTree::RMPTree(RMPNode* _root, std::vector<RMPNode*> _nodes):
+RMPTree::RMPTree(RMPNode* _root, const std::vector<RMPNode*>& _nodes):
 root(_root)
 {
     this->root->clear_children();
+    
     // set all nodes in proper position
     for(size_t i = 0; i < _nodes.size(); i++){
         this->add_node(_nodes[i]);
     }
+#ifdef debug
+    std::cout << "children size:" <<root->children.size() << std::endl;
+#endif
 }
 
-void RMPTree::set_state(RMPNode* node, VectorXd _x, VectorXd _x_dot){
+void RMPTree::set_state(RMPNode* node, const VectorXd& _x, const VectorXd& _x_dot){
     if (node == NULL)
         return;
-    
     node->x = _x;
     node->x_dot = _x_dot;
+
+#ifdef debug
+std::cout << "x:" << _x << std::endl;
+#endif
 }
 
 RMPTree::~RMPTree(){
@@ -125,12 +128,13 @@ pushforward operator handles the state information pass through RMP nodes.
     if (node == NULL)
         return;
 
-    for(size_t i=0; node->children.size(); i++){
+    for(size_t i=0; i < node->children.size(); i++){
         RMPNode* child = node->children[i];
         child->x = child->psi(node->x);
         child->x_dot = child->J(node->x)*node->x_dot;
         pushforward(child);
     }
+    
 }
 
 void RMPTree::pullback(RMPNode* node){
@@ -144,6 +148,7 @@ pullback back propagates the desired force and inertia matrix from leaf nodes to
     for(size_t i=0; i < node->children.size(); i++)
         pullback(node->children[i]);
     
+
     // evaluate dynamics
     node->eval();
 
@@ -151,37 +156,37 @@ pullback back propagates the desired force and inertia matrix from leaf nodes to
         RMPNode* child = node->children[i];
         MatrixXd J = child->J(node->x);
         MatrixXd J_dot = child->J_dot(node->x, node->x_dot);
+        node->f += (J.transpose() * (child->f - child->M*J_dot*node->x_dot));
         
-        // desired force 
-        node->f += J.transpose() * (child->f - child->M*J_dot*node->x_dot);
         // inertia matrix
-        node->M += J.transpose() * child->M * J
+        node->M += (J.transpose() * child->M * J);
+        
+#ifdef debug
+        std::cout << "solved J :\n" << J << std::endl;
+        std::cout << "solved J_dot :\n" << J_dot << std::endl;
+        
+        std::cout << "child f :\n" << child->f << std::endl;
+        std::cout << "child M :\n" << child->M << std::endl;
+
+        std::cout << "solved f :\n" << node->f << std::endl;
+        std::cout << "solved M :\n" << node->M << std::endl;
+#endif
     }
     
 }
 
-void RMPTree::resolve(RMPNode* node){
-
+VectorXd RMPTree::resolve(RMPNode* node){
+    return node->M.jacobiSvd(ComputeFullU | ComputeFullV).solve(node->f);
 }
 
-void RMPTree::solve(RMPNode* node){
+VectorXd RMPTree::solve(const VectorXd& x, const VectorXd& x_dot){
+    RMPTree::set_state(this->root, x, x_dot);
+    pushforward(this->root);
+    pullback(this->root);
 
+#ifdef debug
+std::cout << "solved acceleration :\n" << a << std::endl;
+#endif
+    return resolve(this->root);
 }
 
-
-
-int main(){
-    RMPRoot* r = new RMPRoot("r", 1);
-    RMPLeaf* leaf = new RMPLeaf("leaf", r, 1, NULL, NULL, NULL, NULL);
-    
-    VectorXd x;
-    VectorXd b(3);
-    b << 1, 2, 3;
-    x = b;
-    
-    std::cout << x << std::endl;
-    delete r;
-    delete leaf;
-    
-    return 0;
-}

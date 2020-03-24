@@ -117,7 +117,11 @@ class RMPTree:
             
             #node.M = np.eye(node.x.shape[0])
             node.M += np.dot(np.dot(J.T, child.M), J)
-    
+            print(J)
+            print(node.M)
+            print(J_dot)
+            print(node.f)
+            
     @staticmethod
     def resolve(node):
         """

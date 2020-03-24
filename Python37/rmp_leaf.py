@@ -172,8 +172,7 @@ class GoalAttractorUni(RMPLeaf):
 
             beta = np.exp(- x_norm ** 2 / 2 / (sigma ** 2))
             w = (w_u - w_l) * beta + w_l
-            s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(
-                    -2 * alpha * x_norm))
+            s = (1 - np.exp(-2 * alpha * x_norm)) / (1 + np.exp(-2 * alpha * x_norm))
 
             G = np.eye(N) * w
             if x_norm > tol:
