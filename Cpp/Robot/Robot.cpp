@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "Robot.h"
 
 #define pi M_PI
@@ -820,6 +820,7 @@ unsigned int Robot::EE_Size() const
 
 void Robot::Set_q(Eigen::VectorXd& Src_q)
 {
+
 	if(Src_q.rows() != Active_DOF)
 		return;
 	
@@ -838,6 +839,27 @@ void Robot::Set_q(Eigen::VectorXd& Src_q)
 	Root_DHFrame->Get_FK(Base_TFMat);
 
 	Robot_q = Src_q;
+}
+
+void Robot::Set_q(const Eigen::VectorXd& Src_q)
+{
+	Eigen::VectorXd cmd_q = Src_q;
+	if(Src_q.rows() != Active_DOF)
+		return;
+	
+	// 先更新主動Frame cmd
+	for(int i=0; i < Active_DOF; i++)
+	{	
+		// 先做Joint limit檢查
+		ActiveFrame_Store[i]->Check_JointLimit(cmd_q(i));
+		ActiveFrame_Store[i]->Set_Command(cmd_q(i));
+	}
+	
+	// 再更新被動Frame cmd
+	for(int i=0; i < Passive_DOF; i++)
+		PassiveFrame_Store[i]->Set_Command();
+
+	Root_DHFrame->Get_FK(Base_TFMat);
 }
 
 void Robot::Reset_q()

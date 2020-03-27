@@ -1,6 +1,6 @@
 #include "../Include/rmp.h"
 
-//#define debug
+#define debug
 
 RMPNode::RMPNode(std::string name, RMPNode* parent, int dim):
 name(name),
@@ -24,12 +24,6 @@ void RMPNode::add_child(RMPNode* node){
 void RMPNode::clear_children(){
     this->children.clear();
 }
-
-void RMPNode::eval(){
-    //this->f = VectorXd::Zero(dim); 
-    //this->M = MatrixXd::Zero(dim, dim);   
-}
-
 
 
 RMPRoot::RMPRoot(std::string _name, int _dim)
@@ -130,10 +124,20 @@ pushforward operator handles the state information pass through RMP nodes.
 
     for(size_t i=0; i < node->children.size(); i++){
         RMPNode* child = node->children[i];
+
+#ifdef debug
+        std::cout << "child name:\n" << child->name << std::endl;
+#endif
         child->x = child->psi(node->x);
         child->x_dot = child->J(node->x)*node->x_dot;
+
+#ifdef debug
+        std::cout << "x:" << child->x << std::endl;
+        std::cout << "x_dot:" << child->x_dot << std::endl;
+#endif
         pushforward(child);
     }
+
     
 }
 
@@ -185,7 +189,7 @@ VectorXd RMPTree::solve(const VectorXd& x, const VectorXd& x_dot){
     pullback(this->root);
 
 #ifdef debug
-std::cout << "solved acceleration :\n" << a << std::endl;
+//std::cout << "solved acceleration :\n" << << std::endl;
 #endif
     return resolve(this->root);
 }

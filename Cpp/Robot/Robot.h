@@ -14,20 +14,20 @@
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
-// rad �P deg ����
+
 #define Deg2Rad(theta) ((theta)*M_PI/180.0) 
 #define Rad2Deg(theta) ((theta)*180.0/M_PI)
 
-// ���O�[�t�ױ`�� (m/s^2)
+
 #define Gravity 9.80665
 
-// Frame Mode
+
 #define ACTIVE_FRAME  0
 #define PASSIVE_FRAME 1
 #define CONST_FRAME   2
 
 
-// Eigen Vector �X�R for Robot library
+
 namespace Eigen
 {
 	// Column Major
@@ -56,23 +56,23 @@ namespace Rbt
 	class DHFrame
 	{
 	protected:
-		double a, alpha, d, theta, cmd;  // DH ��l�Ѽ�[a alpha d theta]�A cmd �� Robot_q
-		double ratio;                    // �Q��Frame�P����Frame��������ʤ�
+		double a, alpha, d, theta, cmd;  
+		double ratio;                  
 		double joint_min, joint_max;
 		
-		Eigen::Matrix4d TFMat;      // �ΨӦs��۹��Base Frmae��Transformation Matrix
+		Eigen::Matrix4d TFMat;     
 		
-		Eigen::Matrix4d ConstFrame; // �ΨӦs�� Const Frame
-		Eigen::Matrix4d Front_T;    // �ΨӦs�� pseudo frame �� �D��frame ������ const T
-		Eigen::Matrix4d back_T;     // �ΨӦs�� pseudo frame �� �D��frame ������ const T
+		Eigen::Matrix4d ConstFrame; 
+		Eigen::Matrix4d Front_T;    
+		Eigen::Matrix4d back_T;     
 
-		DHFrame *Parent_DHNode;              // ���V���`�I
-		std::vector<DHFrame*> Child_DHNode;  // ���V�Ҧ��l�`�I
-		DHFrame *DependActive_DHNode;        // �Y�O�Q��Frame�A�h���V�̪ۨ��D�ʸ`�I�F�Ϥ��Y�O�D��Frame�h���V�ۤv
+		DHFrame *Parent_DHNode;          
+		std::vector<DHFrame*> Child_DHNode; 
+		DHFrame *DependActive_DHNode;       
 		
-		int DependActive_ID;   // �Y�O�Q��Frame�A�h�����̪ۨ��D�ʸ`�IID�F�Ϥ��Y�O�D��Frame�h��Self_ID
+		int DependActive_ID;
 		
-		int qList_Index;   // �����D��Frame�b qList ������m
+		int qList_Index;   
 
 		void (DHFrame::*UpdateMat_ptr)(const Eigen::Matrix4d&);
 		inline void UpdateMat(double New_theta);          // ��s TFMat (��e�@�b)
@@ -249,6 +249,8 @@ namespace Rbt
 
 		// �]�w Robot_q �ç�s Transformation Matrix List
 		void Set_q(Eigen::VectorXd& Src_q);
+
+		void Set_q(const Eigen::VectorXd& Src_q);
 		
 		// Robot_q �����k0�A�ç�s Transformation Matrix List
 		void Reset_q();

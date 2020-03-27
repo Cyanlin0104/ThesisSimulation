@@ -3,7 +3,6 @@
 
 #include "rmp.h"
 #include "scene.h"
-#include <functional>
 
 
 
@@ -60,5 +59,7 @@ public:
     ~GoalAttractorUni();
 
 };
+
+
 
 #endif

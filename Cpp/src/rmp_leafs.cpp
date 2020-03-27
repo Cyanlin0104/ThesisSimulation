@@ -141,6 +141,9 @@ gain(gain),
 tol(tol),
 g(_g)
 {
+}
+
+GoalAttractorUni::~GoalAttractorUni(){
     
 }
 
@@ -187,6 +190,3 @@ std::tuple<VectorXd, MatrixXd> GoalAttractorUni::GDS_func (const VectorXd& x , c
     return std::tie(f, M);
 
 }
-
-
-

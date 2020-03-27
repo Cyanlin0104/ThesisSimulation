@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "NTU_ArmHand_Parameter.h"
 
 using namespace Rbt;
